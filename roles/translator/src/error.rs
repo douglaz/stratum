@@ -75,6 +75,8 @@ pub enum Error<'a> {
     Uint256Conversion(ParseLengthError),
     SetDifficultyToMessage(SetDifficulty),
     Infallible(std::convert::Infallible),
+    /// Dangerous long lines
+    MaxLineLengthExceeded,
 }
 
 impl<'a> fmt::Display for Error<'a> {
@@ -103,6 +105,7 @@ impl<'a> fmt::Display for Error<'a> {
             }
             VecToSlice32(ref e) => write!(f, "Standard Error: `{:?}`", e),
             Infallible(ref e) => write!(f, "Infallible Error:`{:?}`", e),
+            MaxLineLengthExceeded => write!(f, "Dangerous long line received"),
         }
     }
 }
@@ -170,6 +173,17 @@ impl<'a> From<async_channel::RecvError> for Error<'a> {
 impl<'a> From<tokio::sync::broadcast::error::RecvError> for Error<'a> {
     fn from(e: tokio::sync::broadcast::error::RecvError) -> Self {
         Error::TokioChannelErrorRecv(e)
+    }
+}
+
+impl<'a> From<tokio_util::codec::LinesCodecError> for Error<'a> {
+    fn from(e: tokio_util::codec::LinesCodecError) -> Self {
+        match e {
+            tokio_util::codec::LinesCodecError::MaxLineLengthExceeded => {
+                Self::MaxLineLengthExceeded
+            }
+            tokio_util::codec::LinesCodecError::Io(e) => e.into(),
+        }
     }
 }
 
