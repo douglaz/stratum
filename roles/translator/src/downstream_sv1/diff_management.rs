@@ -351,19 +351,19 @@ mod test {
             elapsed = timer.elapsed();
             count += 1;
             println!("Submitted {:?} share in {:?} seconds", count, elapsed);
+            println!(
+                "CALCULATED HASHRATE: {:?}",
+                downstream
+                    .clone()
+                    .safe_lock(|d| d.difficulty_mgmt.min_individual_miner_hashrate)
+                    .unwrap()
+            );
             let calculated_share_per_min = count as f32 / (elapsed.as_secs_f32() / 60.0);
             println!("Actual Share/Min {:?}", calculated_share_per_min);
         }
 
         let calculated_share_per_min = count as f32 / (elapsed.as_secs_f32() / 60.0);
 
-        println!(
-            "CALCULATED HASHRATE: {:?}",
-            downstream
-                .clone()
-                .safe_lock(|d| d.difficulty_mgmt.min_individual_miner_hashrate)
-                .unwrap()
-        );
         println!("Actual Share/Min {:?}", calculated_share_per_min);
         let calculated_share_per_min = count as f32 / (elapsed.as_secs_f32() / 60.0);
         let err = ((config_shares_per_minute - calculated_share_per_min)
